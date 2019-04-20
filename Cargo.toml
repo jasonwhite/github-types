@@ -5,4 +5,6 @@ authors = ["Jason White <rust@jasonwhite.io>"]
 edition = "2018"
 
 [dependencies]
-serde = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+hex = "0.3"
+serde = { version = "1", features = ["derive"] }
