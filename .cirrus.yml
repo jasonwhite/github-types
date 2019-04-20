@@ -1,0 +1,48 @@
+# Check that formatting is correct using nightly rust.
+fmt_task:
+  container:
+    image: rustlang/rust:nightly
+  install_script: rustup component add rustfmt-preview
+  check_script: cargo fmt -- --check
+
+# Run clippy.
+clippy_task:
+  container:
+    image: rust:latest
+  cargo_cache:
+    folder: $CARGO_HOME/registry
+    fingerprint_script: cat Cargo.toml
+  install_script: rustup component add clippy
+  check_script: cargo clippy
+  before_cache_script: rm -rf $CARGO_HOME/registry/index
+
+# Build and test.
+test_task:
+  matrix:
+    - container:
+        image: rust:latest
+    - allow_failures: true
+      container:
+        image: rustlang/rust:nightly
+  cargo_cache:
+    folder: $CARGO_HOME/registry
+    fingerprint_script: cat Cargo.toml
+  build_script: cargo build
+  test_script: cargo test
+  before_cache_script: rm -rf $CARGO_HOME/registry/index
+
+# Publish Cargo releases
+publish_task:
+  only_if: $CIRRUS_TAG != ''
+  depends_on:
+    - fmt
+    - clippy
+    - test
+  container:
+    image: rust:latest
+  env:
+    CARGO_TOKEN: ENCRYPTED[24c3996bcead2ad8411ef58926d1efd19a08dcdfd99dbf21f900155bd676908db322dec354b026f9ba3e5094e789c6d1]
+  cargo_cache:
+    folder: $CARGO_HOME/registry
+    fingerprint_script: cat Cargo.toml
+  publish_script: cargo publish --no-verify --token "$CARGO_TOKEN"
