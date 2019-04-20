@@ -204,7 +204,7 @@ pub enum EventType {
 
 impl EventType {
     /// Returns a static string for the event name.
-    pub fn name(&self) -> &'static str {
+    pub fn name(self) -> &'static str {
         match self {
             EventType::Wildcard => "*",
             EventType::Ping => "ping",
@@ -345,6 +345,7 @@ impl fmt::Display for EventType {
 /// For documentation on each of these events, see:
 /// https://developer.github.com/v3/activity/events/types/
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[allow(clippy::large_enum_variant)]
 pub enum Event {
     Ping(PingEvent),
     // CheckRun(CheckRunEvent),

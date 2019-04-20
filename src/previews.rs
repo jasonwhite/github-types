@@ -159,7 +159,7 @@ pub enum Preview {
 
 impl Preview {
     /// Returns the kebab-case name of the preview.
-    pub fn name(&self) -> &'static str {
+    pub fn name(self) -> &'static str {
         match self {
             Preview::Wyandotte => "wyandotte",
             Preview::BarredRock => "barred-rock",
@@ -199,7 +199,7 @@ impl Preview {
 
     /// Returns the media type for the preview. This can be used for the
     /// `Accept` header in requests.
-    pub fn media_type(&self) -> String {
+    pub fn media_type(self) -> String {
         format!("application/vnd.github.{}-preview+json", self.name())
     }
 }
