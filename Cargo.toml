@@ -1,0 +1,8 @@
+[package]
+name = "github-types"
+version = "0.1.0"
+authors = ["Jason White <rust@jasonwhite.io>"]
+edition = "2018"
+
+[dependencies]
+serde = "1.0"
