@@ -26,6 +26,7 @@ use serde::{
     de::{self, Deserializer},
     Deserialize,
 };
+use derive_more::From;
 
 use std::fmt;
 use std::str::FromStr;
@@ -344,7 +345,7 @@ impl fmt::Display for EventType {
 ///
 /// For documentation on each of these events, see:
 /// https://developer.github.com/v3/activity/events/types/
-#[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Deserialize, From, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[allow(clippy::large_enum_variant)]
 pub enum Event {
     Ping(PingEvent),
@@ -361,8 +362,8 @@ pub enum Event {
     Gollum(GollumEvent),
     Installation(InstallationEvent),
     InstallationRepositories(InstallationRepositoriesEvent),
-    IntegrationInstallation(InstallationEvent),
-    IntegrationInstallationRepositories(InstallationRepositoriesEvent),
+    IntegrationInstallation(IntegrationInstallationEvent),
+    IntegrationInstallationRepositories(IntegrationInstallationRepositoriesEvent),
     IssueComment(IssueCommentEvent),
     Issues(IssuesEvent),
     Label(LabelEvent),
@@ -699,6 +700,26 @@ pub struct InstallationRepositoriesEvent {
 impl AppEvent for InstallationRepositoriesEvent {
     fn installation(&self) -> Option<u64> {
         Some(self.installation.id)
+    }
+}
+
+/// Event deprecated by GitHub. Use `InstallationEvent` instead.
+#[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct IntegrationInstallationEvent;
+
+impl AppEvent for IntegrationInstallationEvent {
+    fn installation(&self) -> Option<u64> {
+        None
+    }
+}
+
+/// Event deprecated by GitHub. Use `InstallationRepositoriesEvent` instead.
+#[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct IntegrationInstallationRepositoriesEvent;
+
+impl AppEvent for IntegrationInstallationRepositoriesEvent {
+    fn installation(&self) -> Option<u64> {
+        None
     }
 }
 
