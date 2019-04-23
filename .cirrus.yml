@@ -41,7 +41,7 @@ publish_task:
   container:
     image: rust:latest
   env:
-    CARGO_TOKEN: ENCRYPTED[24c3996bcead2ad8411ef58926d1efd19a08dcdfd99dbf21f900155bd676908db322dec354b026f9ba3e5094e789c6d1]
+    CARGO_TOKEN: ENCRYPTED[1db86593658bf1d4e1db110d5b81834791b73e6742fc9ad69bac52fb99291ee328af336c157e7925e311ce9252a56798]
   cargo_cache:
     folder: $CARGO_HOME/registry
     fingerprint_script: cat Cargo.toml
