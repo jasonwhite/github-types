@@ -22,11 +22,11 @@
 //!
 //! See: https://developer.github.com/v3/activity/events/types/
 
+use derive_more::From;
 use serde::{
     de::{self, Deserializer},
     Deserialize,
 };
-use derive_more::From;
 
 use std::fmt;
 use std::str::FromStr;
@@ -345,7 +345,9 @@ impl fmt::Display for EventType {
 ///
 /// For documentation on each of these events, see:
 /// https://developer.github.com/v3/activity/events/types/
-#[derive(Deserialize, From, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(
+    Deserialize, From, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
+)]
 #[allow(clippy::large_enum_variant)]
 pub enum Event {
     Ping(PingEvent),
@@ -363,7 +365,9 @@ pub enum Event {
     Installation(InstallationEvent),
     InstallationRepositories(InstallationRepositoriesEvent),
     IntegrationInstallation(IntegrationInstallationEvent),
-    IntegrationInstallationRepositories(IntegrationInstallationRepositoriesEvent),
+    IntegrationInstallationRepositories(
+        IntegrationInstallationRepositoriesEvent,
+    ),
     IssueComment(IssueCommentEvent),
     Issues(IssuesEvent),
     Label(LabelEvent),
