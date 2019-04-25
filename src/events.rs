@@ -894,7 +894,11 @@ pub enum PullRequestAction {
     Opened,
     Edited,
     Closed,
+    ReadyForReview,
+    Locked,
+    Unlocked,
     Reopened,
+    Synchronize,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
