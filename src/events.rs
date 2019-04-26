@@ -456,7 +456,7 @@ pub struct RepoHook {
 pub struct HookConfig {
     pub content_type: String,
     pub insecure_ssl: String,
-    pub secret: String,
+    pub secret: Option<String>,
     pub url: String,
 }
 
@@ -465,11 +465,10 @@ pub struct AppHook {
     pub id: u64,
     pub name: String,
     pub active: bool,
-    pub events: Vec<Event>,
+    pub events: Vec<EventType>,
     pub config: HookConfig,
     pub updated_at: DateTime,
     pub created_at: DateTime,
-    pub integration_id: u64,
     pub app_id: u64,
 }
 
@@ -709,7 +708,7 @@ impl AppEvent for InstallationRepositoriesEvent {
 
 /// Event deprecated by GitHub. Use `InstallationEvent` instead.
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct IntegrationInstallationEvent;
+pub struct IntegrationInstallationEvent {}
 
 impl AppEvent for IntegrationInstallationEvent {
     fn installation(&self) -> Option<u64> {
@@ -719,7 +718,7 @@ impl AppEvent for IntegrationInstallationEvent {
 
 /// Event deprecated by GitHub. Use `InstallationRepositoriesEvent` instead.
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct IntegrationInstallationRepositoriesEvent;
+pub struct IntegrationInstallationRepositoriesEvent {}
 
 impl AppEvent for IntegrationInstallationRepositoriesEvent {
     fn installation(&self) -> Option<u64> {
