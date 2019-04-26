@@ -257,7 +257,7 @@ pub struct CheckSuite {
     pub url: String,
 
     /// The commit SHA of the previous commit. If this is a new branch, this
-    /// will be `Oid::zero()`.
+    /// will be `Oid::ZERO`.
     pub before: Oid,
 
     /// The commit SHA of the new commit.
