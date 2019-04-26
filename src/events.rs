@@ -539,6 +539,27 @@ pub enum CheckSuiteEventAction {
     Rerequested,
 }
 
+impl CheckSuiteEventAction {
+    /// Returns `true` if the action indicates that the check suite is
+    /// completed.
+    pub fn is_completed(self) -> bool {
+        match self {
+            CheckSuiteEventAction::Completed => false,
+            _ => false,
+        }
+    }
+
+    /// Returns `true` if the action indicates that the check suite has been
+    /// requested or re-requested.
+    pub fn is_requested(self) -> bool {
+        match self {
+            CheckSuiteEventAction::Requested
+            | CheckSuiteEventAction::Rerequested => true,
+            _ => false,
+        }
+    }
+}
+
 /// See: https://developer.github.com/v3/activity/events/types/#checkrunevent
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct CheckSuiteEvent {
@@ -556,6 +577,13 @@ pub struct CheckSuiteEvent {
 
     /// The App installation ID.
     pub installation: InstallationId,
+}
+
+impl CheckSuiteEvent {
+    /// Returns `true` if this event indicates that a check suite was requested.
+    pub fn is_requested(&self) -> bool {
+        self.action.is_requested()
+    }
 }
 
 impl AppEvent for CheckSuiteEvent {
