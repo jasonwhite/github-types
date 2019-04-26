@@ -32,8 +32,8 @@ use std::fmt;
 use std::str::FromStr;
 
 use crate::{
-    AppEvent, Comment, DateTime, Installation, Issue, Label, Oid, PullRequest,
-    Repository, Review, ShortRepo, User,
+    AppEvent, CheckRun, CheckSuite, Comment, DateTime, Installation, Issue,
+    Label, Oid, PullRequest, Repository, Review, ShortRepo, User,
 };
 
 /// GitHub events that are specified in the X-Github-Event header.
@@ -351,8 +351,8 @@ impl fmt::Display for EventType {
 #[allow(clippy::large_enum_variant)]
 pub enum Event {
     Ping(PingEvent),
-    // CheckRun(CheckRunEvent),
-    // CheckSuite(CheckSuiteEvent),
+    CheckRun(CheckRunEvent),
+    CheckSuite(CheckSuiteEvent),
     CommitComment(CommitCommentEvent),
     // ContentReference(ContentReferenceEvent),
     Create(CreateEvent),
@@ -401,6 +401,8 @@ impl AppEvent for Event {
     fn installation(&self) -> Option<u64> {
         match self {
             Event::Ping(e) => e.installation(),
+            Event::CheckRun(e) => e.installation(),
+            Event::CheckSuite(e) => e.installation(),
             Event::CommitComment(e) => e.installation(),
             Event::Create(e) => e.installation(),
             Event::Delete(e) => e.installation(),
@@ -482,6 +484,85 @@ pub struct PingEvent {
 }
 
 impl AppEvent for PingEvent {}
+
+#[derive(
+    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum CheckRunEventAction {
+    /// A new check run was created.
+    Created,
+
+    /// The `status` of the check run is `completed`.
+    Completed,
+
+    /// Someone requested to re-run your check run.
+    Rerequested,
+
+    /// Someone requested that an action be taken. For example, this `action`
+    /// will be sent if someone clicks a "Fix it" button in the UI.
+    RequestedAction,
+}
+
+/// See: https://developer.github.com/v3/activity/events/types/#checkrunevent
+#[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct CheckRunEvent {
+    /// The action performed.
+    pub action: CheckRunEventAction,
+
+    /// The check run.
+    pub check_run: CheckRun,
+
+    /// The repository associated with this event.
+    pub repository: Repository,
+
+    /// The user who triggered the event.
+    pub sender: User,
+
+    /// The App installation ID.
+    pub installation: InstallationId,
+}
+
+impl AppEvent for CheckRunEvent {
+    fn installation(&self) -> Option<u64> {
+        Some(self.installation.id)
+    }
+}
+
+#[derive(
+    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum CheckSuiteEventAction {
+    Completed,
+    Requested,
+    Rerequested,
+}
+
+/// See: https://developer.github.com/v3/activity/events/types/#checkrunevent
+#[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct CheckSuiteEvent {
+    /// The action performed.
+    pub action: CheckSuiteEventAction,
+
+    /// The check suite.
+    pub check_suite: CheckSuite,
+
+    /// The repository associated with this event.
+    pub repository: Repository,
+
+    /// The user who triggered the event.
+    pub sender: User,
+
+    /// The App installation ID.
+    pub installation: InstallationId,
+}
+
+impl AppEvent for CheckSuiteEvent {
+    fn installation(&self) -> Option<u64> {
+        Some(self.installation.id)
+    }
+}
 
 #[derive(
     Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,

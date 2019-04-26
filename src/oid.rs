@@ -36,15 +36,16 @@ impl Oid {
     /// The empty tree sha `4b825dc642cb6eb9a060e54bf8d69288fbee4904`.
     ///
     /// This can be computed manually with `git hash-object -t tree /dev/null`.
-    pub fn empty_tree() -> Oid {
+    pub const fn empty_tree() -> Oid {
         Oid([
             0x4b, 0x82, 0x5d, 0xc6, 0x42, 0xcb, 0x6e, 0xb9, 0xa0, 0x60, 0xe5,
             0x4b, 0xf8, 0xd6, 0x92, 0x88, 0xfb, 0xee, 0x49, 0x04,
         ])
     }
 
-    /// A sha of all zeros.
-    pub fn zero() -> Oid {
+    /// A sha of all zeros. Usually used to indicate that a branch is either
+    /// created or deleted.
+    pub const fn zero() -> Oid {
         Oid([
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,

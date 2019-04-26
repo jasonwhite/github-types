@@ -155,7 +155,7 @@ pub struct PullRequest {
 pub struct ShortCommit {
     pub label: String,
     #[serde(rename = "ref")]
-    pub commit_ref: String,
+    pub git_ref: String,
     pub sha: Oid,
     pub user: User,
 }

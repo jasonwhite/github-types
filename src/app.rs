@@ -65,3 +65,16 @@ pub struct Installation {
     pub updated_at: DateTime,
     pub single_file_name: Option<String>,
 }
+
+/// Information about an app.
+#[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct App {
+    pub id: u64,
+    pub owner: User,
+    pub name: String,
+    pub description: String,
+    pub external_url: String,
+    pub html_url: String,
+    pub created_at: DateTime,
+    pub updated_at: DateTime,
+}

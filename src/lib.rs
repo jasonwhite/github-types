@@ -19,6 +19,7 @@
 // SOFTWARE.
 
 mod app;
+mod checks;
 mod datetime;
 mod events;
 mod oid;
@@ -27,6 +28,7 @@ mod repo;
 mod user;
 
 pub use app::*;
+pub use checks::*;
 pub use datetime::*;
 pub use events::*;
 pub use oid::*;
