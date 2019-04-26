@@ -224,16 +224,6 @@ pub struct CheckRun {
     pub actions: Option<Vec<CheckRunAction>>,
 }
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
-#[serde(rename_all = "snake_case")]
-pub enum CheckSuiteStatus {
-    Requested,
-    InProgress,
-    Completed,
-}
-
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct CheckSuite {
     pub id: u64,
@@ -247,7 +237,7 @@ pub struct CheckSuite {
     pub head_sha: Oid,
 
     /// The summary status for all check runs that are part of the check suite.
-    pub status: CheckSuiteStatus,
+    pub status: CheckRunStatus,
 
     /// The summary conclusion for all check runs that are part of the check
     /// suite. This will be `None` until the status is `Completed`.
