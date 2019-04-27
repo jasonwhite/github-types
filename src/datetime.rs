@@ -28,15 +28,26 @@ use serde::de::{self, Deserialize, Deserializer, Visitor};
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct DateTime(pub chrono::DateTime<chrono::Utc>);
 
+impl DateTime {
+    /// Returns a `DateTime` which corresponds to the current date.
+    pub fn now() -> Self {
+        DateTime(chrono::Utc::now())
+    }
+}
+
 impl fmt::Debug for DateTime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0.fmt(f)
+        // GitHub wants the datetime as ISO 8601 which is essentially the same
+        // as RFC 3339.
+        write!(f, "{}", self.0.to_rfc3339())
     }
 }
 
 impl fmt::Display for DateTime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0.fmt(f)
+        // GitHub wants the datetime as ISO 8601 which is essentially the same
+        // as RFC 3339.
+        write!(f, "{}", self.0.to_rfc3339())
     }
 }
 
