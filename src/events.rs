@@ -460,7 +460,7 @@ pub struct RepoHook<'a> {
     #[serde(borrow)]
     pub name: &'a str,
     pub active: bool,
-    pub events: Vec<EventType>,
+    pub events: Box<[EventType]>,
     #[serde(borrow)]
     pub config: HookConfig<'a>,
     pub updated_at: DateTime,
@@ -491,7 +491,7 @@ pub struct AppHook<'a> {
     #[serde(borrow)]
     pub name: &'a str,
     pub active: bool,
-    pub events: Vec<EventType>,
+    pub events: Box<[EventType]>,
     #[serde(borrow)]
     pub config: HookConfig<'a>,
     pub updated_at: DateTime,
