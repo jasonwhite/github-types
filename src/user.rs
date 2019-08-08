@@ -22,51 +22,85 @@ use serde::Deserialize;
 
 /// Information about a user.
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct User {
-    pub login: String,
+pub struct User<'a> {
+    #[serde(borrow)]
+    pub login: &'a str,
     pub id: u64,
-    pub avatar_url: String,
-    pub gravatar_id: String,
-    pub url: String,
-    pub html_url: String,
-    pub followers_url: String,
-    pub following_url: String,
-    pub gists_url: String,
-    pub starred_url: String,
-    pub subscriptions_url: String,
-    pub organizations_url: String,
-    pub repos_url: String,
-    pub events_url: String,
-    pub received_events_url: String,
+    #[serde(borrow)]
+    pub avatar_url: &'a str,
+    #[serde(borrow)]
+    pub gravatar_id: &'a str,
+    #[serde(borrow)]
+    pub url: &'a str,
+    #[serde(borrow)]
+    pub html_url: &'a str,
+    #[serde(borrow)]
+    pub followers_url: &'a str,
+    #[serde(borrow)]
+    pub following_url: &'a str,
+    #[serde(borrow)]
+    pub gists_url: &'a str,
+    #[serde(borrow)]
+    pub starred_url: &'a str,
+    #[serde(borrow)]
+    pub subscriptions_url: &'a str,
+    #[serde(borrow)]
+    pub organizations_url: &'a str,
+    #[serde(borrow)]
+    pub repos_url: &'a str,
+    #[serde(borrow)]
+    pub events_url: &'a str,
+    #[serde(borrow)]
+    pub received_events_url: &'a str,
     pub site_admin: bool,
 }
 
 /// Information about the current authenticated user.
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct AuthenticatedUser {
-    pub login: String,
+pub struct AuthenticatedUser<'a> {
+    #[serde(borrow)]
+    pub login: &'a str,
     pub id: u64,
-    pub avatar_url: String,
-    pub gravatar_id: String,
-    pub url: String,
-    pub html_url: String,
-    pub followers_url: String,
-    pub following_url: String,
-    pub gists_url: String,
-    pub starred_url: String,
-    pub subscriptions_url: String,
-    pub organizations_url: String,
-    pub repos_url: String,
-    pub events_url: String,
-    pub received_events_url: String,
+    #[serde(borrow)]
+    pub avatar_url: &'a str,
+    #[serde(borrow)]
+    pub gravatar_id: &'a str,
+    #[serde(borrow)]
+    pub url: &'a str,
+    #[serde(borrow)]
+    pub html_url: &'a str,
+    #[serde(borrow)]
+    pub followers_url: &'a str,
+    #[serde(borrow)]
+    pub following_url: &'a str,
+    #[serde(borrow)]
+    pub gists_url: &'a str,
+    #[serde(borrow)]
+    pub starred_url: &'a str,
+    #[serde(borrow)]
+    pub subscriptions_url: &'a str,
+    #[serde(borrow)]
+    pub organizations_url: &'a str,
+    #[serde(borrow)]
+    pub repos_url: &'a str,
+    #[serde(borrow)]
+    pub events_url: &'a str,
+    #[serde(borrow)]
+    pub received_events_url: &'a str,
     pub site_admin: bool,
 
     // Extended over `User`:
-    pub name: Option<String>,
-    pub company: Option<String>,
-    pub blog: String,
-    pub location: Option<String>,
-    pub email: Option<String>,
+    #[serde(borrow)]
+    pub name: Option<&'a str>,
+    #[serde(borrow)]
+    pub company: Option<&'a str>,
+    #[serde(borrow)]
+    pub blog: &'a str,
+    #[serde(borrow)]
+    pub location: Option<&'a str>,
+    #[serde(borrow)]
+    pub email: Option<&'a str>,
     pub hireable: Option<bool>,
-    pub bio: Option<String>,
+    #[serde(borrow)]
+    pub bio: Option<&'a str>,
 }

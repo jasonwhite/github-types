@@ -32,14 +32,16 @@ use std::fmt;
 use std::str::FromStr;
 
 use crate::{
-    AppEvent, CheckRun, CheckSuite, Comment, DateTime, Installation, Issue,
-    Label, Oid, PullRequest, Repository, Review, ShortRepo, User,
+    AppEvent, CheckRun, CheckSuite, Comment, DateTime, Installation, Issue, Label, Oid,
+    PullRequest, Repository, Review, ShortRepo, User,
 };
 
 /// GitHub events that are specified in the X-Github-Event header.
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[serde(rename_all = "snake_case")]
 pub enum EventType {
     /// (Special event.) Any time any event is triggered (Wildcard Event).
+    #[serde(rename = "*")]
     Wildcard,
 
     /// (Special event.) Sent when a webhook is added.
@@ -203,6 +205,26 @@ pub enum EventType {
     Watch,
 }
 
+// struct EventTypeVisitor;
+// impl<'de> ::serde::de::Visitor<'de> for EventTypeVisitor {
+// type Value = EventType;
+// fn expecting(&self, formatter: &mut ::std::fmt::Formatter) -> fmt::Result {
+// write!(formatter, "expecting a static string")
+// }
+// fn visit_borrowed_str<E: ::serde::de::Error>(self, v: &'de str) ->
+// Result<Self::Value,E> { EventType::from_str(v).map_err(::serde::de::Error::
+// custom) }
+// }
+//
+// impl<'de> Deserialize<'de> for EventType {
+// fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+// where
+// D: Deserializer<'de>,
+// {
+// deserializer.deserialize_str(EventTypeVisitor)
+// }
+// }
+
 impl EventType {
     /// Returns a static string for the event name.
     pub fn name(self) -> &'static str {
@@ -242,16 +264,12 @@ impl EventType {
             EventType::Public => "public",
             EventType::PullRequest => "pull_request",
             EventType::PullRequestReview => "pull_request_review",
-            EventType::PullRequestReviewComment => {
-                "pull_request_review_comment"
-            }
+            EventType::PullRequestReviewComment => "pull_request_review_comment",
             EventType::Push => "push",
             EventType::Release => "release",
             EventType::Repository => "repository",
             EventType::RepositoryImport => "repository_import",
-            EventType::RepositoryVulnerabilityAlert => {
-                "repository_vulnerability_alert"
-            }
+            EventType::RepositoryVulnerabilityAlert => "repository_vulnerability_alert",
             EventType::SecurityAdvisory => "security_advisory",
             EventType::Status => "status",
             EventType::Team => "team",
@@ -280,12 +298,8 @@ impl FromStr for EventType {
             "github_app_authorization" => Ok(EventType::GitHubAppAuthorization),
             "gollum" => Ok(EventType::Gollum),
             "installation" => Ok(EventType::Installation),
-            "integration_installation" => {
-                Ok(EventType::IntegrationInstallation)
-            }
-            "installation_repositories" => {
-                Ok(EventType::InstallationRepositories)
-            }
+            "integration_installation" => Ok(EventType::IntegrationInstallation),
+            "installation_repositories" => Ok(EventType::InstallationRepositories),
             "integration_installation_repositories" => {
                 Ok(EventType::IntegrationInstallationRepositories)
             }
@@ -304,17 +318,13 @@ impl FromStr for EventType {
             "project" => Ok(EventType::Project),
             "public" => Ok(EventType::Public),
             "pull_request" => Ok(EventType::PullRequest),
-            "pull_request_review_comment" => {
-                Ok(EventType::PullRequestReviewComment)
-            }
+            "pull_request_review_comment" => Ok(EventType::PullRequestReviewComment),
             "pull_request_review" => Ok(EventType::PullRequestReview),
             "push" => Ok(EventType::Push),
             "release" => Ok(EventType::Release),
             "repository" => Ok(EventType::Repository),
             "repository_import" => Ok(EventType::RepositoryImport),
-            "repository_vulnerability_alert" => {
-                Ok(EventType::RepositoryVulnerabilityAlert)
-            }
+            "repository_vulnerability_alert" => Ok(EventType::RepositoryVulnerabilityAlert),
             "security_advisory" => Ok(EventType::SecurityAdvisory),
             "status" => Ok(EventType::Status),
             "team" => Ok(EventType::Team),
@@ -324,17 +334,6 @@ impl FromStr for EventType {
         }
     }
 }
-
-impl<'de> Deserialize<'de> for EventType {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        FromStr::from_str(&s).map_err(de::Error::custom)
-    }
-}
-
 impl fmt::Display for EventType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(self.name())
@@ -345,32 +344,41 @@ impl fmt::Display for EventType {
 ///
 /// For documentation on each of these events, see:
 /// https://developer.github.com/v3/activity/events/types/
-#[derive(
-    Deserialize, From, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, From, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[allow(clippy::large_enum_variant)]
-pub enum Event {
-    Ping(PingEvent),
-    CheckRun(CheckRunEvent),
-    CheckSuite(CheckSuiteEvent),
-    CommitComment(CommitCommentEvent),
+pub enum Event<'a> {
+    #[serde(borrow)]
+    Ping(PingEvent<'a>),
+    #[serde(borrow)]
+    CheckRun(CheckRunEvent<'a>),
+    #[serde(borrow)]
+    CheckSuite(CheckSuiteEvent<'a>),
+    #[serde(borrow)]
+    CommitComment(CommitCommentEvent<'a>),
     // ContentReference(ContentReferenceEvent),
-    Create(CreateEvent),
-    Delete(DeleteEvent),
+    #[serde(borrow)]
+    Create(CreateEvent<'a>),
+    #[serde(borrow)]
+    Delete(DeleteEvent<'a>),
     // Deployment(DeploymentEvent),
     // DeploymentStatus(DeploymentStatusEvent),
     // Fork(ForkEvent),
-    GitHubAppAuthorization(GitHubAppAuthorizationEvent),
-    Gollum(GollumEvent),
-    Installation(InstallationEvent),
-    InstallationRepositories(InstallationRepositoriesEvent),
+    #[serde(borrow)]
+    GitHubAppAuthorization(GitHubAppAuthorizationEvent<'a>),
+    #[serde(borrow)]
+    Gollum(GollumEvent<'a>),
+    #[serde(borrow)]
+    Installation(InstallationEvent<'a>),
+    #[serde(borrow)]
+    InstallationRepositories(InstallationRepositoriesEvent<'a>),
     IntegrationInstallation(IntegrationInstallationEvent),
-    IntegrationInstallationRepositories(
-        IntegrationInstallationRepositoriesEvent,
-    ),
-    IssueComment(IssueCommentEvent),
-    Issues(IssuesEvent),
-    Label(LabelEvent),
+    IntegrationInstallationRepositories(IntegrationInstallationRepositoriesEvent),
+    #[serde(borrow)]
+    IssueComment(IssueCommentEvent<'a>),
+    #[serde(borrow)]
+    Issues(IssuesEvent<'a>),
+    #[serde(borrow)]
+    Label(LabelEvent<'a>),
     // MarketplacePurchase(MarketplacePurchaseEvent),
     // Member(MemberEvent),
     // Membership(MembershipEvent),
@@ -382,22 +390,28 @@ pub enum Event {
     // ProjectColumn(ProjectColumnEvent),
     // Project(ProjectEvent),
     // Public(PublicEvent),
-    PullRequest(PullRequestEvent),
-    PullRequestReview(PullRequestReviewEvent),
-    PullRequestReviewComment(PullRequestReviewCommentEvent),
-    Push(PushEvent),
+    #[serde(borrow)]
+    PullRequest(PullRequestEvent<'a>),
+    #[serde(borrow)]
+    PullRequestReview(PullRequestReviewEvent<'a>),
+    #[serde(borrow)]
+    PullRequestReviewComment(PullRequestReviewCommentEvent<'a>),
+    #[serde(borrow)]
+    Push(PushEvent<'a>),
     // Release(ReleaseEvent),
-    Repository(RepositoryEvent),
+    #[serde(borrow)]
+    Repository(RepositoryEvent<'a>),
     // RepositoryImport(RepositoryImportEvent),
     // RepositoryVulnerabilityAlert(RepositoryVulnerabilityAlertEvent),
     // SecurityAdvisory(SecurityAdvisoryEvent),
     // Status(StatusEvent),
     // Team(TeamEvent),
     // TeamAdd(TeamAddEvent),
-    Watch(WatchEvent),
+    #[serde(borrow)]
+    Watch(WatchEvent<'a>),
 }
 
-impl AppEvent for Event {
+impl<'a> AppEvent for Event<'a> {
     fn installation(&self) -> Option<u64> {
         match self {
             Event::Ping(e) => e.installation(),
@@ -426,68 +440,81 @@ impl AppEvent for Event {
 }
 
 /// The App installation ID.
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct InstallationId {
     pub id: u64,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(tag = "type")]
-pub enum Hook {
-    Repository(RepoHook),
-    App(AppHook),
+pub enum Hook<'a> {
+    #[serde(borrow)]
+    Repository(RepoHook<'a>),
+    #[serde(borrow)]
+    App(AppHook<'a>),
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct RepoHook {
+pub struct RepoHook<'a> {
     pub id: u64,
-    pub name: String,
+    #[serde(borrow)]
+    pub name: &'a str,
     pub active: bool,
     pub events: Vec<EventType>,
-    pub config: HookConfig,
+    #[serde(borrow)]
+    pub config: HookConfig<'a>,
     pub updated_at: DateTime,
     pub created_at: DateTime,
-    pub url: String,
-    pub test_url: String,
-    pub ping_url: String,
+    #[serde(borrow)]
+    pub url: &'a str,
+    #[serde(borrow)]
+    pub test_url: &'a str,
+    #[serde(borrow)]
+    pub ping_url: &'a str,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct HookConfig {
-    pub content_type: String,
-    pub insecure_ssl: String,
-    pub secret: Option<String>,
-    pub url: String,
+pub struct HookConfig<'a> {
+    #[serde(borrow)]
+    pub content_type: &'a str,
+    #[serde(borrow)]
+    pub insecure_ssl: &'a str,
+    #[serde(borrow)]
+    pub secret: Option<&'a str>,
+    #[serde(borrow)]
+    pub url: &'a str,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct AppHook {
+pub struct AppHook<'a> {
     pub id: u64,
-    pub name: String,
+    #[serde(borrow)]
+    pub name: &'a str,
     pub active: bool,
     pub events: Vec<EventType>,
-    pub config: HookConfig,
+    #[serde(borrow)]
+    pub config: HookConfig<'a>,
     pub updated_at: DateTime,
     pub created_at: DateTime,
     pub app_id: u64,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct PingEvent {
-    pub zen: String,
+pub struct PingEvent<'a> {
+    #[serde(borrow)]
+    pub zen: &'a str,
     pub hook_id: u64,
-    pub hook: Hook,
-    pub repository: Option<Repository>,
-    pub sender: Option<User>,
+    #[serde(borrow)]
+    pub hook: Hook<'a>,
+    #[serde(borrow)]
+    pub repository: Option<Repository<'a>>,
+    #[serde(borrow)]
+    pub sender: Option<User<'a>>,
 }
 
-impl AppEvent for PingEvent {}
+impl<'a> AppEvent for PingEvent<'a> {}
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum CheckRunEventAction {
     /// A new check run was created.
@@ -506,32 +533,33 @@ pub enum CheckRunEventAction {
 
 /// See: https://developer.github.com/v3/activity/events/types/#checkrunevent
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct CheckRunEvent {
+pub struct CheckRunEvent<'a> {
     /// The action performed.
     pub action: CheckRunEventAction,
 
     /// The check run.
-    pub check_run: CheckRun,
+    #[serde(borrow)]
+    pub check_run: CheckRun<'a>,
 
     /// The repository associated with this event.
-    pub repository: Repository,
+    #[serde(borrow)]
+    pub repository: Repository<'a>,
 
     /// The user who triggered the event.
-    pub sender: User,
+    #[serde(borrow)]
+    pub sender: User<'a>,
 
     /// The App installation ID.
     pub installation: InstallationId,
 }
 
-impl AppEvent for CheckRunEvent {
+impl<'a> AppEvent for CheckRunEvent<'a> {
     fn installation(&self) -> Option<u64> {
         Some(self.installation.id)
     }
 }
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum CheckSuiteEventAction {
     Completed,
@@ -553,8 +581,7 @@ impl CheckSuiteEventAction {
     /// requested or re-requested.
     pub fn is_requested(self) -> bool {
         match self {
-            CheckSuiteEventAction::Requested
-            | CheckSuiteEventAction::Rerequested => true,
+            CheckSuiteEventAction::Requested | CheckSuiteEventAction::Rerequested => true,
             _ => false,
         }
     }
@@ -562,70 +589,72 @@ impl CheckSuiteEventAction {
 
 /// See: https://developer.github.com/v3/activity/events/types/#checkrunevent
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct CheckSuiteEvent {
+pub struct CheckSuiteEvent<'a> {
     /// The action performed.
     pub action: CheckSuiteEventAction,
 
     /// The check suite.
-    pub check_suite: CheckSuite,
+    #[serde(borrow)]
+    pub check_suite: CheckSuite<'a>,
 
     /// The repository associated with this event.
-    pub repository: Repository,
+    #[serde(borrow)]
+    pub repository: Repository<'a>,
 
     /// The user who triggered the event.
-    pub sender: User,
+    #[serde(borrow)]
+    pub sender: User<'a>,
 
     /// The App installation ID.
     pub installation: InstallationId,
 }
 
-impl CheckSuiteEvent {
+impl<'a> CheckSuiteEvent<'a> {
     /// Returns `true` if this event indicates that a check suite was requested.
     pub fn is_requested(&self) -> bool {
         self.action.is_requested()
     }
 }
 
-impl AppEvent for CheckSuiteEvent {
+impl<'a> AppEvent for CheckSuiteEvent<'a> {
     fn installation(&self) -> Option<u64> {
         Some(self.installation.id)
     }
 }
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum CommitCommentAction {
     Created,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct CommitCommentEvent {
+pub struct CommitCommentEvent<'a> {
     pub action: CommitCommentAction,
 
     /// The comment in question.
-    pub comment: Comment,
+    #[serde(borrow)]
+    pub comment: Comment<'a>,
 
     /// The repository associated with this event.
-    pub repository: Repository,
+    #[serde(borrow)]
+    pub repository: Repository<'a>,
 
     /// The user who triggered the event.
-    pub sender: User,
+    #[serde(borrow)]
+    pub sender: User<'a>,
 
     /// The App installation ID. This is only present for GitHub App events.
     pub installation: Option<InstallationId>,
 }
 
-impl AppEvent for CommitCommentEvent {
+impl<'a> AppEvent for CommitCommentEvent<'a> {
     fn installation(&self) -> Option<u64> {
         self.installation.map(|i| i.id)
     }
 }
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum CreateRefType {
     Repository,
@@ -634,41 +663,43 @@ pub enum CreateRefType {
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct CreateEvent {
+pub struct CreateEvent<'a> {
     /// The Git ref type.
     pub ref_type: CreateRefType,
 
     /// The Git ref string.
     ///
     /// `None` if only a repository was created.
-    #[serde(rename = "ref")]
-    pub git_ref: Option<String>,
+    #[serde(borrow, rename = "ref")]
+    pub git_ref: Option<&'a str>,
 
     /// The name of the repository's default branch (usually `master`).
-    pub master_branch: String,
+    #[serde(borrow)]
+    pub master_branch: &'a str,
 
     /// The repository's current description.
-    pub description: Option<String>,
+    #[serde(borrow)]
+    pub description: Option<&'a str>,
 
     /// The repository associated with this event.
-    pub repository: Repository,
+    #[serde(borrow)]
+    pub repository: Repository<'a>,
 
     /// The user who triggered the event.
-    pub sender: User,
+    #[serde(borrow)]
+    pub sender: User<'a>,
 
     /// The App installation ID. This is only present for GitHub App events.
     pub installation: Option<InstallationId>,
 }
 
-impl AppEvent for CreateEvent {
+impl<'a> AppEvent for CreateEvent<'a> {
     fn installation(&self) -> Option<u64> {
         self.installation.map(|i| i.id)
     }
 }
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum DeleteRefType {
     Branch,
@@ -676,33 +707,33 @@ pub enum DeleteRefType {
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct DeleteEvent {
+pub struct DeleteEvent<'a> {
     /// The Git ref type.
     pub ref_type: DeleteRefType,
 
     /// The Git ref string.
-    #[serde(rename = "ref")]
-    pub git_ref: String,
+    #[serde(borrow, rename = "ref")]
+    pub git_ref: &'a str,
 
     /// The repository associated with this event.
-    pub repository: Repository,
+    #[serde(borrow)]
+    pub repository: Repository<'a>,
 
     /// The user who triggered the event.
-    pub sender: User,
+    #[serde(borrow)]
+    pub sender: User<'a>,
 
     /// The App installation ID. This is only present for GitHub App events.
     pub installation: Option<InstallationId>,
 }
 
-impl AppEvent for DeleteEvent {
+impl<'a> AppEvent for DeleteEvent<'a> {
     fn installation(&self) -> Option<u64> {
         self.installation.map(|i| i.id)
     }
 }
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum GitHubAppAuthorizationAction {
     Revoked,
@@ -711,25 +742,24 @@ pub enum GitHubAppAuthorizationAction {
 /// Triggered when someone revokes their authorization of a GitHub App. A GitHub
 /// App receives this webhook by default and cannot unsubscribe from this event.
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct GitHubAppAuthorizationEvent {
+pub struct GitHubAppAuthorizationEvent<'a> {
     pub action: GitHubAppAuthorizationAction,
 
     /// The user who triggered the event.
-    pub sender: User,
+    #[serde(borrow)]
+    pub sender: User<'a>,
 
     /// The App installation ID.
     pub installation: InstallationId,
 }
 
-impl AppEvent for GitHubAppAuthorizationEvent {
+impl<'a> AppEvent for GitHubAppAuthorizationEvent<'a> {
     fn installation(&self) -> Option<u64> {
         Some(self.installation.id)
     }
 }
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum PageAction {
     Created,
@@ -737,39 +767,44 @@ pub enum PageAction {
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct PageEvent {
-    pub page_name: String,
-    pub title: String,
-    pub summary: Option<String>,
+pub struct PageEvent<'a> {
+    #[serde(borrow)]
+    pub page_name: &'a str,
+    #[serde(borrow)]
+    pub title: &'a str,
+    #[serde(borrow)]
+    pub summary: Option<&'a str>,
     pub action: PageAction,
     pub sha: Oid,
-    pub html_url: String,
+    #[serde(borrow)]
+    pub html_url: &'a str,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct GollumEvent {
+pub struct GollumEvent<'a> {
     /// The pages that were created or edited.
-    pub pages: Vec<PageEvent>,
+    #[serde(borrow)]
+    pub pages: Box<[PageEvent<'a>]>,
 
     /// The repository for which the action took place.
-    pub repository: Repository,
+    #[serde(borrow)]
+    pub repository: Repository<'a>,
 
     /// The user who triggered the event.
-    pub sender: User,
+    #[serde(borrow)]
+    pub sender: User<'a>,
 
     /// The App installation ID. This is only present for GitHub App events.
     pub installation: Option<InstallationId>,
 }
 
-impl AppEvent for GollumEvent {
+impl<'a> AppEvent for GollumEvent<'a> {
     fn installation(&self) -> Option<u64> {
         self.installation.map(|i| i.id)
     }
 }
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum InstallationAction {
     Created,
@@ -778,21 +813,21 @@ pub enum InstallationAction {
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct InstallationEvent {
+pub struct InstallationEvent<'a> {
     pub action: InstallationAction,
-    pub installation: Installation,
-    pub sender: User,
+    #[serde(borrow)]
+    pub installation: Installation<'a>,
+    #[serde(borrow)]
+    pub sender: User<'a>,
 }
 
-impl AppEvent for InstallationEvent {
+impl<'a> AppEvent for InstallationEvent<'a> {
     fn installation(&self) -> Option<u64> {
         Some(self.installation.id)
     }
 }
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum InstallationRepositoriesAction {
     Added,
@@ -800,16 +835,21 @@ pub enum InstallationRepositoriesAction {
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct InstallationRepositoriesEvent {
+pub struct InstallationRepositoriesEvent<'a> {
     pub action: InstallationRepositoriesAction,
-    pub installation: Installation,
-    pub repository_selection: String,
-    pub repositories_added: Vec<ShortRepo>,
-    pub repositories_removed: Vec<ShortRepo>,
-    pub sender: User,
+    #[serde(borrow)]
+    pub installation: Installation<'a>,
+    #[serde(borrow)]
+    pub repository_selection: &'a str,
+    #[serde(borrow)]
+    pub repositories_added: Box<[ShortRepo<'a>]>,
+    #[serde(borrow)]
+    pub repositories_removed: Box<[ShortRepo<'a>]>,
+    #[serde(borrow)]
+    pub sender: User<'a>,
 }
 
-impl AppEvent for InstallationRepositoriesEvent {
+impl<'a> AppEvent for InstallationRepositoriesEvent<'a> {
     fn installation(&self) -> Option<u64> {
         Some(self.installation.id)
     }
@@ -835,9 +875,7 @@ impl AppEvent for IntegrationInstallationRepositoriesEvent {
     }
 }
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum IssueCommentAction {
     Created,
@@ -846,35 +884,37 @@ pub enum IssueCommentAction {
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct IssueCommentEvent {
+pub struct IssueCommentEvent<'a> {
     /// The action that was performed.
     pub action: IssueCommentAction,
 
     /// The issue associated with the comment.
-    pub issue: Issue,
+    #[serde(borrow)]
+    pub issue: Issue<'a>,
 
     /// The comment in question.
-    pub comment: Comment,
+    #[serde(borrow)]
+    pub comment: Comment<'a>,
 
     /// The repository associated with this event.
-    pub repository: Repository,
+    #[serde(borrow)]
+    pub repository: Repository<'a>,
 
     /// The user who triggered the event.
-    pub sender: User,
+    #[serde(borrow)]
+    pub sender: User<'a>,
 
     /// The App installation ID. This is only present for GitHub App events.
     pub installation: Option<InstallationId>,
 }
 
-impl AppEvent for IssueCommentEvent {
+impl<'a> AppEvent for IssueCommentEvent<'a> {
     fn installation(&self) -> Option<u64> {
         self.installation.map(|i| i.id)
     }
 }
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum IssueAction {
     Opened,
@@ -908,43 +948,46 @@ pub struct IssueChanges {
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct IssuesEvent {
+pub struct IssuesEvent<'a> {
     /// The action that was performed.
     pub action: IssueAction,
 
     /// The issue itself.
-    pub issue: Issue,
+    #[serde(borrow)]
+    pub issue: Issue<'a>,
 
     /// Changes to the issues (if the action is `Edited`).
     pub changes: Option<IssueChanges>,
 
     /// The label that was added or removed (if the action is `Labeled` or
     /// `Unlabeled`).
-    pub label: Option<Label>,
+    #[serde(borrow)]
+    pub label: Option<Label<'a>>,
 
     /// The optional user who was assigned or unassigned from the issue (if the
     /// action is `Assigned` or `Unassigned`).
-    pub assignee: Option<User>,
+    #[serde(borrow)]
+    pub assignee: Option<User<'a>>,
 
     /// The repository associated with this event.
-    pub repository: Repository,
+    #[serde(borrow)]
+    pub repository: Repository<'a>,
 
     /// The user who triggered the event.
-    pub sender: User,
+    #[serde(borrow)]
+    pub sender: User<'a>,
 
     /// The App installation ID. This is only present for GitHub App events.
     pub installation: Option<InstallationId>,
 }
 
-impl AppEvent for IssuesEvent {
+impl<'a> AppEvent for IssuesEvent<'a> {
     fn installation(&self) -> Option<u64> {
         self.installation.map(|i| i.id)
     }
 }
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum LabelAction {
     Created,
@@ -962,35 +1005,36 @@ pub struct LabelChanges {
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct LabelEvent {
+pub struct LabelEvent<'a> {
     /// The action that was performed.
     pub action: LabelAction,
 
     /// The label itself.
-    pub label: Label,
+    #[serde(borrow)]
+    pub label: Label<'a>,
 
     /// Changes to the issues (if the action is `Edited`).
     pub changes: Option<LabelChanges>,
 
     /// The repository associated with this event.
-    pub repository: Repository,
+    #[serde(borrow)]
+    pub repository: Repository<'a>,
 
     /// The user who triggered the event.
-    pub sender: User,
+    #[serde(borrow)]
+    pub sender: User<'a>,
 
     /// The App installation ID. This is only present for GitHub App events.
     pub installation: Option<InstallationId>,
 }
 
-impl AppEvent for LabelEvent {
+impl<'a> AppEvent for LabelEvent<'a> {
     fn installation(&self) -> Option<u64> {
         self.installation.map(|i| i.id)
     }
 }
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum PullRequestAction {
     Assigned,
@@ -1010,7 +1054,7 @@ pub enum PullRequestAction {
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct PullRequestEvent {
+pub struct PullRequestEvent<'a> {
     /// The action that was performed. Can be one of "assigned", "unassigned",
     /// "review_requested", "review_request_removed", "labeled", "unlabeled",
     /// "opened", "edited", "closed", or "reopened". If the action is "closed"
@@ -1025,27 +1069,28 @@ pub struct PullRequestEvent {
     pub number: u64,
 
     /// The pull request itself.
-    pub pull_request: PullRequest,
+    #[serde(borrow)]
+    pub pull_request: PullRequest<'a>,
 
     /// The repository associated with this event.
-    pub repository: Repository,
+    #[serde(borrow)]
+    pub repository: Repository<'a>,
 
     /// The user who triggered the event.
-    pub sender: User,
+    #[serde(borrow)]
+    pub sender: User<'a>,
 
     /// The App installation ID. This is only present for GitHub App events.
     pub installation: Option<InstallationId>,
 }
 
-impl AppEvent for PullRequestEvent {
+impl<'a> AppEvent for PullRequestEvent<'a> {
     fn installation(&self) -> Option<u64> {
         self.installation.map(|i| i.id)
     }
 }
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum PullRequestReviewAction {
     Submitted,
@@ -1059,38 +1104,40 @@ pub struct PullRequestReviewChanges {
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct PullRequestReviewEvent {
+pub struct PullRequestReviewEvent<'a> {
     /// The action that was performed.
     pub action: PullRequestReviewAction,
 
     /// The review that was affected.
-    pub review: Review,
+    #[serde(borrow)]
+    pub review: Review<'a>,
 
     /// Changes to the review if the action is `Edited`.
     pub changes: Option<PullRequestReviewChanges>,
 
     /// The pull request itself.
-    pub pull_request: PullRequest,
+    #[serde(borrow)]
+    pub pull_request: PullRequest<'a>,
 
     /// The repository associated with this event.
-    pub repository: Repository,
+    #[serde(borrow)]
+    pub repository: Repository<'a>,
 
     /// The user who triggered the event.
-    pub sender: User,
+    #[serde(borrow)]
+    pub sender: User<'a>,
 
     /// The App installation ID. This is only present for GitHub App events.
     pub installation: Option<InstallationId>,
 }
 
-impl AppEvent for PullRequestReviewEvent {
+impl<'a> AppEvent for PullRequestReviewEvent<'a> {
     fn installation(&self) -> Option<u64> {
         self.installation.map(|i| i.id)
     }
 }
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum PullRequestReviewCommentAction {
     Created,
@@ -1105,67 +1152,83 @@ pub struct PullRequestReviewCommentChanges {
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct PullRequestReviewCommentEvent {
+pub struct PullRequestReviewCommentEvent<'a> {
     pub action: PullRequestReviewCommentAction,
 
     /// The changes to the comment if the action was `Edited`.
     pub changes: Option<PullRequestReviewCommentChanges>,
 
     /// The pull request itself.
-    pub pull_request: PullRequest,
+    #[serde(borrow)]
+    pub pull_request: PullRequest<'a>,
 
     /// The repository associated with this event.
-    pub repository: Repository,
+    #[serde(borrow)]
+    pub repository: Repository<'a>,
 
     /// The comment in question.
-    pub comment: Comment,
+    #[serde(borrow)]
+    pub comment: Comment<'a>,
 
     /// The user who triggered the event.
-    pub sender: User,
+    #[serde(borrow)]
+    pub sender: User<'a>,
 
     /// The App installation ID. This is only present for GitHub App events.
     pub installation: Option<InstallationId>,
 }
 
-impl AppEvent for PullRequestReviewCommentEvent {
+impl<'a> AppEvent for PullRequestReviewCommentEvent<'a> {
     fn installation(&self) -> Option<u64> {
         self.installation.map(|i| i.id)
     }
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct Pusher {
-    pub name: String,
-    pub email: Option<String>,
+pub struct Pusher<'a> {
+    #[serde(borrow)]
+    pub name: &'a str,
+    #[serde(borrow)]
+    pub email: Option<&'a str>,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct PushAuthor {
-    pub name: String,
-    pub email: Option<String>,
-    pub username: Option<String>,
+pub struct PushAuthor<'a> {
+    #[serde(borrow)]
+    pub name: &'a str,
+    #[serde(borrow)]
+    pub email: Option<&'a str>,
+    #[serde(borrow)]
+    pub username: Option<&'a str>,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct PushCommit {
+pub struct PushCommit<'a> {
     pub id: Oid,
     pub tree_id: Oid,
     pub distinct: bool,
-    pub message: String,
+    #[serde(borrow)]
+    pub message: &'a str,
     pub timestamp: DateTime,
-    pub url: String,
-    pub author: PushAuthor,
-    pub committer: PushAuthor,
-    pub added: Vec<String>,
-    pub removed: Vec<String>,
-    pub modified: Vec<String>,
+    #[serde(borrow)]
+    pub url: &'a str,
+    #[serde(borrow)]
+    pub author: PushAuthor<'a>,
+    #[serde(borrow)]
+    pub committer: PushAuthor<'a>,
+    #[serde(borrow)]
+    pub added: Box<[&'a str]>,
+    #[serde(borrow)]
+    pub removed: Box<[&'a str]>,
+    #[serde(borrow)]
+    pub modified: Box<[&'a str]>,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct PushEvent {
+pub struct PushEvent<'a> {
     /// The Git ref string that was pushed.
-    #[serde(rename = "ref")]
-    pub git_ref: String,
+    #[serde(borrow, rename = "ref")]
+    pub git_ref: &'a str,
 
     /// The commit hash of the branch before the push.
     pub before: Oid,
@@ -1182,40 +1245,45 @@ pub struct PushEvent {
     /// `true` if this was a force-push.
     pub forced: bool,
 
-    pub base_ref: Option<String>,
+    #[serde(borrow)]
+    pub base_ref: Option<&'a str>,
 
     /// The URL to compare the changes with.
-    pub compare: String,
+    #[serde(borrow)]
+    pub compare: &'a str,
 
     /// The list of commits that were pushed.
-    pub commits: Vec<PushCommit>,
+    #[serde(borrow)]
+    pub commits: Box<[PushCommit<'a>]>,
 
     /// The new head commit.
-    pub head_commit: Option<PushCommit>,
+    #[serde(borrow)]
+    pub head_commit: Option<PushCommit<'a>>,
 
     /// The repository associated with this event.
-    pub repository: Repository,
+    #[serde(borrow)]
+    pub repository: Repository<'a>,
 
     /// The user who pushed the branch. This is the same as the sender, except
     /// with less information.
-    pub pusher: Pusher,
+    #[serde(borrow)]
+    pub pusher: Pusher<'a>,
 
     /// The user who triggered the event.
-    pub sender: User,
+    #[serde(borrow)]
+    pub sender: User<'a>,
 
     /// The App installation ID. This is only present for GitHub App events.
     pub installation: Option<InstallationId>,
 }
 
-impl AppEvent for PushEvent {
+impl<'a> AppEvent for PushEvent<'a> {
     fn installation(&self) -> Option<u64> {
         self.installation.map(|i| i.id)
     }
 }
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum RepositoryAction {
     Created,
@@ -1227,50 +1295,52 @@ pub enum RepositoryAction {
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct RepositoryEvent {
+pub struct RepositoryEvent<'a> {
     /// The action that was performed.
     pub action: RepositoryAction,
 
     /// The repository associated with this event.
-    pub repository: Repository,
+    #[serde(borrow)]
+    pub repository: Repository<'a>,
 
     /// The user who triggered the event.
-    pub sender: User,
+    #[serde(borrow)]
+    pub sender: User<'a>,
 
     /// The App installation ID. This is only present for GitHub App events.
     pub installation: Option<InstallationId>,
 }
 
-impl AppEvent for RepositoryEvent {
+impl<'a> AppEvent for RepositoryEvent<'a> {
     fn installation(&self) -> Option<u64> {
         self.installation.map(|i| i.id)
     }
 }
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum WatchAction {
     Started,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct WatchEvent {
+pub struct WatchEvent<'a> {
     /// The action that was performed.
     pub action: WatchAction,
 
     /// The repository associated with this event.
-    pub repository: Repository,
+    #[serde(borrow)]
+    pub repository: Repository<'a>,
 
     /// The user who triggered the event.
-    pub sender: User,
+    #[serde(borrow)]
+    pub sender: User<'a>,
 
     /// The App installation ID. This is only present for GitHub App events.
     pub installation: Option<InstallationId>,
 }
 
-impl AppEvent for WatchEvent {
+impl<'a> AppEvent for WatchEvent<'a> {
     fn installation(&self) -> Option<u64> {
         self.installation.map(|i| i.id)
     }

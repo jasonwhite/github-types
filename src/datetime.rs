@@ -90,17 +90,14 @@ impl<'de> Deserialize<'de> for DateTime {
                 use chrono::TimeZone;
 
                 match chrono::Utc.timestamp_opt(v, 0) {
-                    LocalResult::None => Err(E::custom(format!(
-                        "value is not a legal timestamp: {}",
-                        v
-                    ))),
-                    LocalResult::Ambiguous(min, max) => {
-                        Err(E::custom(format!(
-                            "value is an ambiguous timestamp: \
-                             {}, could be either of {}, {}",
-                            v, min, max
-                        )))
+                    LocalResult::None => {
+                        Err(E::custom(format!("value is not a legal timestamp: {}", v)))
                     }
+                    LocalResult::Ambiguous(min, max) => Err(E::custom(format!(
+                        "value is an ambiguous timestamp: \
+                         {}, could be either of {}, {}",
+                        v, min, max
+                    ))),
                     LocalResult::Single(datetime) => Ok(DateTime(datetime)),
                 }
             }
