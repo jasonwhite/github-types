@@ -19,7 +19,7 @@
 // SOFTWARE.
 
 // macro usage isn't detected properly
-#[allow(unused_macros)] 
+#[allow(unused_macros)]
 macro_rules! test_generator {
     (
     TypeName: $type_name: ident;
