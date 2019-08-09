@@ -18,6 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+
 use serde::Deserialize;
 
 /// Information about a user.
@@ -103,4 +104,48 @@ pub struct AuthenticatedUser<'a> {
     pub hireable: Option<bool>,
     #[serde(borrow)]
     pub bio: Option<&'a str>,
+}
+
+#[test]
+fn test_user_parsing() {
+    // value from: https://developer.github.com/v3/pulls/#list-pull-requests
+    test_generator! {
+        TypeName: User;
+        TestData: r#"{
+        "login": "hubot",
+        "id": 1,
+        "node_id": "MDQ6VXNlcjE=",
+        "avatar_url": "https://github.com/images/error/hubot_happy.gif",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/hubot",
+        "html_url": "https://github.com/hubot",
+        "followers_url": "https://api.github.com/users/hubot/followers",
+        "following_url": "https://api.github.com/users/hubot/following{/other_user}",
+        "gists_url": "https://api.github.com/users/hubot/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/hubot/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/hubot/subscriptions",
+        "organizations_url": "https://api.github.com/users/hubot/orgs",
+        "repos_url": "https://api.github.com/users/hubot/repos",
+        "events_url": "https://api.github.com/users/hubot/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/hubot/received_events",
+        "type": "User",
+        "site_admin": true
+      }"#;
+    assert!(login == "hubot");
+    assert!(id == 1u64);
+    assert!(avatar_url == "https://github.com/images/error/hubot_happy.gif");
+    assert!(gravatar_id == "");
+        assert!(url == "https://api.github.com/users/hubot");
+        assert!(html_url == "https://github.com/hubot");
+        assert!(followers_url == "https://api.github.com/users/hubot/followers");
+        assert!(following_url == "https://api.github.com/users/hubot/following{/other_user}");
+        assert!(gists_url == "https://api.github.com/users/hubot/gists{/gist_id}");
+        assert!(starred_url == "https://api.github.com/users/hubot/starred{/owner}{/repo}");
+        assert!(subscriptions_url == "https://api.github.com/users/hubot/subscriptions");
+        assert!(organizations_url == "https://api.github.com/users/hubot/orgs");
+        assert!(repos_url == "https://api.github.com/users/hubot/repos");
+        assert!(events_url == "https://api.github.com/users/hubot/events{/privacy}");
+        assert!(received_events_url == "https://api.github.com/users/hubot/received_events");
+        assert!(site_admin == true);
+    }
 }
