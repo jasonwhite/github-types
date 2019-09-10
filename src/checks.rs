@@ -22,9 +22,7 @@ use serde::Deserialize;
 
 use crate::{App, DateTime, Oid};
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum CheckRunStatus {
     Queued,
@@ -32,9 +30,7 @@ pub enum CheckRunStatus {
     Completed,
 }
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum Conclusion {
     Success,
@@ -45,9 +41,7 @@ pub enum Conclusion {
     ActionRequired,
 }
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum AnnotationLevel {
     Notice,
@@ -56,10 +50,11 @@ pub enum AnnotationLevel {
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct Annotation {
+pub struct Annotation<'a> {
     /// Required. The path of the file to add an annotation to. For example,
     /// `assets/css/main.css`.
-    pub path: String,
+    #[serde(borrow)]
+    pub path: &'a str,
 
     /// Required. The start line of the annotation.
     pub start_line: u32,
@@ -82,38 +77,47 @@ pub struct Annotation {
 
     /// Required. A short description of the feedback for these lines of code.
     /// The maximum size is 64 KB.
-    pub message: String,
+    #[serde(borrow)]
+    pub message: &'a str,
 
     /// The title that represents the annotation. The maximum size is 255
     /// characters.
-    pub title: Option<String>,
+    #[serde(borrow)]
+    pub title: Option<&'a str>,
 
     /// Raw details about this annotation. The maximum size is 64 KB.
-    pub raw_details: Option<String>,
+    #[serde(borrow)]
+    pub raw_details: Option<&'a str>,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct Image {
+pub struct Image<'a> {
     /// Required. The alternative text for the image.
-    pub alt: String,
+    #[serde(borrow)]
+    pub alt: &'a str,
 
     /// Required. The full URL of the image.
-    pub image_url: String,
+    #[serde(borrow)]
+    pub image_url: &'a str,
 
     /// A short image description.
-    pub caption: Option<String>,
+    #[serde(borrow)]
+    pub caption: Option<&'a str>,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct Output {
+pub struct Output<'a> {
     /// The title of the check run.
-    pub title: String,
+    #[serde(borrow)]
+    pub title: &'a str,
 
     /// The summary of the check run. This parameter supports Markdown.
-    pub summary: String,
+    #[serde(borrow)]
+    pub summary: &'a str,
 
     /// The details of the check run. This parameter supports Markdown.
-    pub text: Option<String>,
+    #[serde(borrow)]
+    pub text: Option<&'a str>,
 
     /// Adds information from your analysis to specific lines of code.
     /// Annotations are visible on GitHub in the *Checks* and *Files changed*
@@ -127,25 +131,30 @@ pub struct Output {
     ///
     /// [1]: https://developer.github.com/v3/checks/runs/#update-a-check-run
     /// [2]: https://help.github.com/articles/about-status-checks#checks
-    pub annotations: Option<Vec<Annotation>>,
+    #[serde(borrow)]
+    pub annotations: Option<Box<[Annotation<'a>]>>,
 
     /// Adds images to the output displayed in the GitHub pull request UI.
-    pub images: Option<Vec<Image>>,
+    #[serde(borrow)]
+    pub images: Option<Box<[Image<'a>]>>,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct CheckRunAction {
+pub struct CheckRunAction<'a> {
     /// The text to be displayed on a button in the web UI. The maximum size is
     /// 20 characters.
-    pub label: String,
+    #[serde(borrow)]
+    pub label: &'a str,
 
     /// A short explanation of what this action would do. The maximum size is
     /// 40 characters.
-    pub description: String,
+    #[serde(borrow)]
+    pub description: &'a str,
 
     /// A reference for the action on the integrator's system. The maximum size
     /// is 20 characters.
-    pub identifier: String,
+    #[serde(borrow)]
+    pub identifier: &'a str,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -155,49 +164,59 @@ pub struct CheckSuiteId {
 
 /// A repo associated with a `CheckRun`.
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct CheckRunRepo {
+pub struct CheckRunRepo<'a> {
     pub id: u64,
-    pub url: String,
-    pub name: String,
+    #[serde(borrow)]
+    pub url: &'a str,
+    #[serde(borrow)]
+    pub name: &'a str,
 }
 
 /// A commit associated with a `CheckRun`.
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct CheckRunCommit {
+pub struct CheckRunCommit<'a> {
     #[serde(rename = "ref")]
-    pub git_ref: String,
+    #[serde(borrow)]
+    pub git_ref: &'a str,
     pub sha: Oid,
-    pub repo: CheckRunRepo,
+    pub repo: CheckRunRepo<'a>,
 }
 
 /// A pull request associated with a `CheckRun`.
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct CheckRunPullRequest {
-    pub url: String,
+pub struct CheckRunPullRequest<'a> {
+    #[serde(borrow)]
+    pub url: &'a str,
     pub id: u64,
     pub number: u64,
-    pub head: CheckRunCommit,
-    pub base: CheckRunCommit,
+    #[serde(borrow)]
+    pub head: CheckRunCommit<'a>,
+    #[serde(borrow)]
+    pub base: CheckRunCommit<'a>,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct CheckRun {
+pub struct CheckRun<'a> {
     /// The ID of the check run.
     pub id: u64,
 
     /// The name of the check run.
-    pub name: String,
+    #[serde(borrow)]
+    pub name: &'a str,
 
     /// The URL of the integrator's site that has the full details of the
     /// check.
     pub head_sha: Oid,
 
     /// A reference for the run on the integrator's system.
-    pub external_id: String,
+    #[serde(borrow)]
+    pub external_id: &'a str,
 
-    pub url: String,
+    #[serde(borrow)]
+    pub url: &'a str,
 
-    pub html_url: String,
+    #[serde(borrow)]
+    pub html_url: &'a str,
 
     /// The current status.
     pub status: CheckRunStatus,
@@ -211,27 +230,32 @@ pub struct CheckRun {
     /// The time the check completed.
     pub completed_at: Option<DateTime>,
 
-    pub output: Option<Output>,
+    #[serde(borrow)]
+    pub output: Option<Output<'a>>,
 
     pub check_suite: CheckSuiteId,
 
-    pub app: App,
+    #[serde(borrow)]
+    pub app: App<'a>,
 
-    pub pull_requests: Vec<CheckRunPullRequest>,
+    #[serde(borrow)]
+    pub pull_requests: Box<[CheckRunPullRequest<'a>]>,
 
     /// Possible further actions the integrator can perform, which a user may
     /// trigger. A maximum of three actions are accepted.
-    pub actions: Option<Vec<CheckRunAction>>,
+    #[serde(borrow)]
+    pub actions: Option<Box<[CheckRunAction<'a>]>>,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct CheckSuite {
+pub struct CheckSuite<'a> {
     pub id: u64,
 
     /// The head branch name of the changes are on.
     ///
     /// This is `None` if head branch is in a forked repository.
-    pub head_branch: Option<String>,
+    #[serde(borrow)]
+    pub head_branch: Option<&'a str>,
 
     /// The SHA of the most recent commit for this check suite.
     pub head_sha: Oid,
@@ -244,7 +268,8 @@ pub struct CheckSuite {
     pub conclusion: Option<Conclusion>,
 
     /// URL that points to the check suite API resource.
-    pub url: String,
+    #[serde(borrow)]
+    pub url: &'a str,
 
     /// The commit SHA of the previous commit. If this is a new branch, this
     /// will be `Oid::ZERO`.
@@ -258,7 +283,9 @@ pub struct CheckSuite {
     /// `head_branch`. When the check suite's `head_branch` is in a forked
     /// repository it will be `None` and the `pull_requests` array will be
     /// empty.
-    pub pull_requests: Vec<CheckRunPullRequest>,
+    #[serde(borrow)]
+    pub pull_requests: Box<[CheckRunPullRequest<'a>]>,
 
-    pub app: App,
+    #[serde(borrow)]
+    pub app: App<'a>,
 }

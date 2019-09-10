@@ -18,6 +18,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+// macro usage isn't detected properly
+#[allow(unused_macros)]
+macro_rules! test_generator {
+    (
+    TypeName: $type_name: ident;
+    TestData: $test_data: expr;
+    $(assert!($field_name: ident == $field_value: expr);)*
+    ) => {
+        let json_value: $type_name = match ::serde_json::from_str($test_data) {
+            Ok(json_value) => json_value,
+            Err(err) => panic!("{:?}", err),
+        };
+        $(
+            assert_eq!(json_value.$field_name, $field_value);
+        )*
+    };
+}
+
 mod app;
 mod checks;
 mod datetime;

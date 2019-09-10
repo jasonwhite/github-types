@@ -37,15 +37,15 @@ impl Oid {
     ///
     /// This can be computed manually with `git hash-object -t tree /dev/null`.
     pub const EMPTY_TREE: Oid = Oid([
-        0x4b, 0x82, 0x5d, 0xc6, 0x42, 0xcb, 0x6e, 0xb9, 0xa0, 0x60, 0xe5, 0x4b,
-        0xf8, 0xd6, 0x92, 0x88, 0xfb, 0xee, 0x49, 0x04,
+        0x4b, 0x82, 0x5d, 0xc6, 0x42, 0xcb, 0x6e, 0xb9, 0xa0, 0x60, 0xe5, 0x4b, 0xf8, 0xd6, 0x92,
+        0x88, 0xfb, 0xee, 0x49, 0x04,
     ]);
 
     /// A sha of all zeros. Usually used to indicate that a branch is either
     /// created or deleted.
     pub const ZERO: Oid = Oid([
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00,
     ]);
 }
 
@@ -122,20 +122,16 @@ impl<'de> Deserialize<'de> for Oid {
                 E: de::Error,
             {
                 let v = <[u8; 20]>::from_hex(v).map_err(|e| match e {
-                    FromHexError::InvalidHexCharacter { c, .. } => {
-                        E::invalid_value(
-                            de::Unexpected::Char(c),
-                            &"string with only hexadecimal characters",
-                        )
+                    FromHexError::InvalidHexCharacter { c, .. } => E::invalid_value(
+                        de::Unexpected::Char(c),
+                        &"string with only hexadecimal characters",
+                    ),
+                    FromHexError::InvalidStringLength => {
+                        E::invalid_length(v.len(), &"hex string with a valid length")
                     }
-                    FromHexError::InvalidStringLength => E::invalid_length(
-                        v.len(),
-                        &"hex string with a valid length",
-                    ),
-                    FromHexError::OddLength => E::invalid_length(
-                        v.len(),
-                        &"hex string with an even length",
-                    ),
+                    FromHexError::OddLength => {
+                        E::invalid_length(v.len(), &"hex string with an even length")
+                    }
                 })?;
 
                 Ok(Oid(v))

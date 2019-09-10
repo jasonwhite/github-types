@@ -29,9 +29,7 @@ pub trait AppEvent {
     }
 }
 
-#[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
-)]
+#[derive(Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum Permission {
     Read,
@@ -49,32 +47,44 @@ pub struct InstallationPermissions {
 
 /// Information about an app installation.
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct Installation {
+pub struct Installation<'a> {
     pub id: u64,
-    pub account: User,
-    pub repository_selection: String,
-    pub access_tokens_url: String,
-    pub repositories_url: String,
-    pub html_url: String,
+    #[serde(borrow)]
+    pub account: User<'a>,
+    #[serde(borrow)]
+    pub repository_selection: &'a str,
+    #[serde(borrow)]
+    pub access_tokens_url: &'a str,
+    #[serde(borrow)]
+    pub repositories_url: &'a str,
+    #[serde(borrow)]
+    pub html_url: &'a str,
     pub app_id: u64,
     pub target_id: u64,
-    pub target_type: String,
+    #[serde(borrow)]
+    pub target_type: &'a str,
     pub permissions: InstallationPermissions,
-    pub events: Vec<EventType>,
+    pub events: Box<[EventType]>,
     pub created_at: DateTime,
     pub updated_at: DateTime,
-    pub single_file_name: Option<String>,
+    #[serde(borrow)]
+    pub single_file_name: Option<&'a str>,
 }
 
 /// Information about an app.
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct App {
+pub struct App<'a> {
     pub id: u64,
-    pub owner: User,
-    pub name: String,
-    pub description: String,
-    pub external_url: String,
-    pub html_url: String,
+    #[serde(borrow)]
+    pub owner: User<'a>,
+    #[serde(borrow)]
+    pub name: &'a str,
+    #[serde(borrow)]
+    pub description: &'a str,
+    #[serde(borrow)]
+    pub external_url: &'a str,
+    #[serde(borrow)]
+    pub html_url: &'a str,
     pub created_at: DateTime,
     pub updated_at: DateTime,
 }
