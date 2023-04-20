@@ -1007,6 +1007,13 @@ pub enum PullRequestAction {
     Unlocked,
     Reopened,
     Synchronize,
+    Milestoned,
+    Demilestoned,
+    AutoMergeEnabled,
+    AutoMergeDisabled,
+    ConvertedToDraft,
+    Enqueued,
+    Dequeued,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
