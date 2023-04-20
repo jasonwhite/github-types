@@ -149,6 +149,7 @@ pub struct PullRequest {
     pub deletions: Option<u64>,
     pub changed_files: Option<u64>,
     pub labels: Vec<Label>,
+    pub draft: bool,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
