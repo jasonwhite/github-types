@@ -559,11 +559,11 @@ impl CheckSuiteEventAction {
     /// Returns `true` if the action indicates that the check suite has been
     /// requested or re-requested.
     pub fn is_requested(self) -> bool {
-        match self {
+        matches!(
+            self,
             CheckSuiteEventAction::Requested
-            | CheckSuiteEventAction::Rerequested => true,
-            _ => false,
-        }
+                | CheckSuiteEventAction::Rerequested,
+        )
     }
 }
 

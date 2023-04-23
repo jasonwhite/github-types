@@ -20,7 +20,6 @@
 use std::fmt;
 use std::ops::Deref;
 
-use chrono;
 use serde::de::{self, Deserialize, Deserializer, Visitor};
 
 /// A UTC datetime that can be deserialized as either a string or unix
