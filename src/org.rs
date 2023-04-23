@@ -13,6 +13,6 @@ pub struct Organization {
     pub issues_url: String,
     pub members_url: String,
     pub public_members_url: String,
-    pub avatur_url: String,
+    pub avatar_url: String,
     pub description: String,
 }
