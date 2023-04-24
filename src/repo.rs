@@ -139,6 +139,7 @@ pub struct PullRequest {
     pub user: User,
     pub assignee: Option<User>,
     pub assignees: Vec<User>,
+    pub requested_reviewers: Vec<User>,
     pub merge_commit_sha: Option<String>,
     pub merged: bool,
     pub mergeable: Option<bool>,
