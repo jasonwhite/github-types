@@ -53,7 +53,7 @@ pub struct WorkflowStep {
     pub completed_at: Option<DateTime>,
     pub name: String,
     pub number: u64,
-    pub started_at: DateTime,
+    pub started_at: Option<DateTime>,
     pub conclusion: Option<WorkflowStepConclusion>,
     pub status: WorkflowStepStatus,
 }
@@ -74,7 +74,7 @@ pub struct WorkflowJob {
     pub run_id: u64,
     pub run_url: String,
     /// The ID of the runner group that is running this job. This will be null as long as workflow_job[status] is queued.
-    pub runner_group_id: Option<String>,
+    pub runner_group_id: Option<u64>,
     /// The name of the runner group that is running this job. This will be null as long as workflow_job[status] is queued.
     pub runner_group_name: Option<String>,
     /// The ID of the runner that is running this job. This will be null as long as workflow_job[status] is queued.

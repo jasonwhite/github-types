@@ -20,6 +20,15 @@
 
 use serde::Deserialize;
 
+#[derive(
+    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
+)]
+pub enum UserType {
+    Bot,
+    User,
+    Organization,
+    Mannequin,
+}
 /// Information about a user.
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct User {
@@ -39,6 +48,8 @@ pub struct User {
     pub events_url: String,
     pub received_events_url: String,
     pub site_admin: bool,
+    #[serde(rename = "type")]
+    pub user_type: UserType,
 }
 
 /// Information about the current authenticated user.
