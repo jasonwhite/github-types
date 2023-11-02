@@ -32,9 +32,9 @@ use std::fmt;
 use std::str::FromStr;
 
 use crate::{
-    AppEvent, CheckRun, CheckSuite, Comment, DateTime, Deployment,
-    Installation, Issue, Label, Oid, Organization, PullRequest, Repository,
-    Review, ShortRepo, User, WorkflowJob,
+    AppEvent, Branch, CheckRun, CheckSuite, Comment, DateTime, Deployment,
+    Entreprise, Installation, Issue, Label, Oid, Organization, PullRequest,
+    Repository, Review, ShortRepo, StatusState, User, WorkflowJob,
 };
 
 /// GitHub events that are specified in the X-Github-Event header.
@@ -396,7 +396,7 @@ pub enum Event {
     // RepositoryImport(RepositoryImportEvent),
     // RepositoryVulnerabilityAlert(RepositoryVulnerabilityAlertEvent),
     // SecurityAdvisory(SecurityAdvisoryEvent),
-    // Status(StatusEvent),
+    Status(StatusEvent),
     // Team(TeamEvent),
     // TeamAdd(TeamAddEvent),
     Watch(WatchEvent),
@@ -426,6 +426,7 @@ impl AppEvent for Event {
             Event::PullRequestReviewComment(e) => e.installation(),
             Event::Push(e) => e.installation(),
             Event::Repository(e) => e.installation(),
+            Event::Status(e) => e.installation(),
             Event::Watch(e) => e.installation(),
             Event::WorkflowJob(e) => e.installation(),
         }
@@ -1327,6 +1328,32 @@ pub struct WorkflowJobEvent {
 }
 
 impl AppEvent for WorkflowJobEvent {
+    fn installation(&self) -> Option<u64> {
+        self.installation.map(|i| i.id)
+    }
+}
+
+#[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct StatusEvent {
+    pub id: u64,
+    pub sha: Oid,
+    pub name: String,
+    pub target_url: String,
+    pub avatar_url: String,
+    pub context: String,
+    pub description: String,
+    pub state: StatusState,
+    pub branches: Vec<Branch>,
+    pub repository: Repository,
+    pub organization: Option<Organization>,
+    pub entreprise: Option<Entreprise>,
+    pub sender: User,
+    pub created_at: DateTime,
+    pub updated_at: DateTime,
+    pub installation: Option<InstallationId>,
+}
+
+impl AppEvent for StatusEvent {
     fn installation(&self) -> Option<u64> {
         self.installation.map(|i| i.id)
     }
