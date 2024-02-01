@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::{DateTime, InstallationPermissions, User};
 
@@ -28,7 +28,16 @@ pub enum WorkflowStatus {
 }
 
 #[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
+    Serialize,
+    Deserialize,
+    Debug,
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    Hash,
 )]
 #[serde(rename_all = "snake_case")]
 pub enum WorkflowStepConclusion {
@@ -39,30 +48,42 @@ pub enum WorkflowStepConclusion {
 }
 
 #[derive(
-    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
+    Serialize,
+    Deserialize,
+    Debug,
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    Hash,
 )]
 #[serde(rename_all = "snake_case")]
 pub enum WorkflowStepStatus {
     Queued,
     InProgress,
     Completed,
+    Failure,
+    Pending,
 }
-
-#[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(
+    Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
+)]
 pub struct WorkflowStep {
     pub completed_at: Option<DateTime>,
     pub name: String,
     pub number: u64,
     pub started_at: Option<DateTime>,
     pub conclusion: Option<WorkflowStepConclusion>,
-    pub status: WorkflowStepStatus,
+    pub status: Option<WorkflowStepStatus>,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct WorkflowJob {
     pub check_run_url: String,
     pub completed_at: Option<DateTime>,
-    pub completion: Option<WorkflowCompletion>,
+    pub conclusion: Option<WorkflowCompletion>,
     pub created_at: DateTime,
     pub head_sha: String,
     pub html_url: String,
