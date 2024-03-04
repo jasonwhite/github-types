@@ -21,17 +21,27 @@
 mod app;
 mod checks;
 mod datetime;
+mod entreprise;
 mod events;
+mod git;
 mod oid;
+mod org;
 mod previews;
 mod repo;
+mod status;
 mod user;
+mod workflow;
 
 pub use app::*;
 pub use checks::*;
 pub use datetime::*;
+pub use entreprise::*;
 pub use events::*;
+pub use git::*;
 pub use oid::*;
+pub use org::*;
 pub use previews::*;
 pub use repo::*;
+pub use status::*;
 pub use user::*;
+pub use workflow::*;

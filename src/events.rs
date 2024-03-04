@@ -32,8 +32,9 @@ use std::fmt;
 use std::str::FromStr;
 
 use crate::{
-    AppEvent, CheckRun, CheckSuite, Comment, DateTime, Installation, Issue,
-    Label, Oid, PullRequest, Repository, Review, ShortRepo, User,
+    AppEvent, Branch, CheckRun, CheckSuite, Comment, DateTime, Deployment,
+    Entreprise, Installation, Issue, Label, Oid, Organization, PullRequest,
+    Repository, Review, ShortRepo, StatusState, User, WorkflowJob,
 };
 
 /// GitHub events that are specified in the X-Github-Event header.
@@ -201,6 +202,8 @@ pub enum EventType {
 
     /// Any time a User stars a Repository.
     Watch,
+    /// This event occurs when there is activity relating to a job in a GitHub Actions workflow.
+    WorkflowJob,
 }
 
 impl EventType {
@@ -257,6 +260,7 @@ impl EventType {
             EventType::Team => "team",
             EventType::TeamAdd => "team_add",
             EventType::Watch => "watch",
+            EventType::WorkflowJob => "workflow_job",
         }
     }
 }
@@ -320,6 +324,7 @@ impl FromStr for EventType {
             "team" => Ok(EventType::Team),
             "team_add" => Ok(EventType::TeamAdd),
             "watch" => Ok(EventType::Watch),
+            "workflow_job" => Ok(EventType::WorkflowJob),
             _ => Err("invalid GitHub event"),
         }
     }
@@ -391,10 +396,11 @@ pub enum Event {
     // RepositoryImport(RepositoryImportEvent),
     // RepositoryVulnerabilityAlert(RepositoryVulnerabilityAlertEvent),
     // SecurityAdvisory(SecurityAdvisoryEvent),
-    // Status(StatusEvent),
+    Status(StatusEvent),
     // Team(TeamEvent),
     // TeamAdd(TeamAddEvent),
     Watch(WatchEvent),
+    WorkflowJob(WorkflowJobEvent),
 }
 
 impl AppEvent for Event {
@@ -420,7 +426,9 @@ impl AppEvent for Event {
             Event::PullRequestReviewComment(e) => e.installation(),
             Event::Push(e) => e.installation(),
             Event::Repository(e) => e.installation(),
+            Event::Status(e) => e.installation(),
             Event::Watch(e) => e.installation(),
+            Event::WorkflowJob(e) => e.installation(),
         }
     }
 }
@@ -552,11 +560,11 @@ impl CheckSuiteEventAction {
     /// Returns `true` if the action indicates that the check suite has been
     /// requested or re-requested.
     pub fn is_requested(self) -> bool {
-        match self {
+        matches!(
+            self,
             CheckSuiteEventAction::Requested
-            | CheckSuiteEventAction::Rerequested => true,
-            _ => false,
-        }
+                | CheckSuiteEventAction::Rerequested,
+        )
     }
 }
 
@@ -1007,6 +1015,13 @@ pub enum PullRequestAction {
     Unlocked,
     Reopened,
     Synchronize,
+    Milestoned,
+    Demilestoned,
+    AutoMergeEnabled,
+    AutoMergeDisabled,
+    ConvertedToDraft,
+    Enqueued,
+    Dequeued,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -1271,6 +1286,74 @@ pub struct WatchEvent {
 }
 
 impl AppEvent for WatchEvent {
+    fn installation(&self) -> Option<u64> {
+        self.installation.map(|i| i.id)
+    }
+}
+
+#[derive(
+    Deserialize, Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum WorkflowJobAction {
+    Completed,
+    InProgress,
+    Queued,
+    Waiting,
+}
+
+#[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct WorkflowJobEvent {
+    /// The action that was performed. Can be one of "completed", "in_progress",
+    /// "queued", "waiting"
+    pub action: WorkflowJobAction,
+
+    /// A GitHub organization
+    pub organization: Organization,
+
+    /// The repository associated with this event.
+    pub repository: Repository,
+
+    /// The user who triggered the event.
+    pub sender: User,
+
+    /// Properties of workflow_job
+    pub workflow_job: Option<WorkflowJob>,
+
+    /// A request for a specific ref(branch,sha,tag) to be deployed
+    pub deployment: Option<Deployment>,
+
+    /// The App installation ID. This is only present for GitHub App events.
+    pub installation: Option<InstallationId>,
+}
+
+impl AppEvent for WorkflowJobEvent {
+    fn installation(&self) -> Option<u64> {
+        self.installation.map(|i| i.id)
+    }
+}
+
+#[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct StatusEvent {
+    pub id: u64,
+    pub sha: Oid,
+    pub name: String,
+    pub target_url: String,
+    pub avatar_url: String,
+    pub context: String,
+    pub description: String,
+    pub state: StatusState,
+    pub branches: Vec<Branch>,
+    pub repository: Repository,
+    pub organization: Option<Organization>,
+    pub entreprise: Option<Entreprise>,
+    pub sender: User,
+    pub created_at: DateTime,
+    pub updated_at: DateTime,
+    pub installation: Option<InstallationId>,
+}
+
+impl AppEvent for StatusEvent {
     fn installation(&self) -> Option<u64> {
         self.installation.map(|i| i.id)
     }

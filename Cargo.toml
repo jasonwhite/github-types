@@ -1,6 +1,6 @@
 [package]
 name = "github-types"
-version = "0.1.1"
+version = "0.1.3"
 authors = ["Jason White <rust@jasonwhite.io>"]
 edition = "2018"
 description = """
@@ -15,7 +15,7 @@ categories = ["api-bindings"]
 license = "MIT"
 
 [dependencies]
-chrono = { version = "0.4", features = ["serde"] }
+time = { version = "0.3.32", features = ["serde-human-readable"] }
 hex = "0.3"
 serde = { version = "1", features = ["derive"] }
-derive_more = "0.14"
+derive_more = "0.99.17"

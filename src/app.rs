@@ -42,9 +42,11 @@ pub enum Permission {
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct InstallationPermissions {
     pub issues: Option<Permission>,
+    pub checks: Option<Permission>,
     pub contents: Option<Permission>,
     pub pull_requests: Option<Permission>,
     pub metadata: Option<Permission>,
+    pub deployments: Option<Permission>,
 }
 
 /// Information about an app installation.

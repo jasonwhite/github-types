@@ -139,6 +139,7 @@ pub struct PullRequest {
     pub user: User,
     pub assignee: Option<User>,
     pub assignees: Vec<User>,
+    pub requested_reviewers: Vec<User>,
     pub merge_commit_sha: Option<String>,
     pub merged: bool,
     pub mergeable: Option<bool>,
@@ -149,6 +150,7 @@ pub struct PullRequest {
     pub deletions: Option<u64>,
     pub changed_files: Option<u64>,
     pub labels: Vec<Label>,
+    pub draft: bool,
 }
 
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
